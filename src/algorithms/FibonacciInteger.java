@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /*
+   Tested on MacBook Air M2 24GB RAM
+
    a) Fibonacci(47) is maximum n value that produce correct Fibonacci sequence:
       [0, 1, 1, 2, 3, 5, 8, 13, 21, 34,...433494437, 701408733, 1134903170, 1836311903]
 

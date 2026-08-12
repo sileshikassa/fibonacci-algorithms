@@ -11,8 +11,8 @@ A high-performance, multi-threaded Java implementation engineered to calculate a
 | **3** | `FibonacciBigInteger.java` | Transition to arbitrary-precision `BigInteger` object references. | ❌ **Heap OutOfMemoryError (OOM)** at \(F_{1,000,000}\) due to massive O(N) sequential array allocations. |
 | **4** | `FibonacciBigIntegerLargeScaleName.java` | **Space Optimization**: Removed the tracking array. Used an O(1) scalar pipeline (`a`, `b`, `c`) to capture the single target number. Added custom Latin Short Scale Naming Engine. | ❌ **Time Complexity Bottleneck**: Execution stalled for over 4 hours at N=10⁹ due to O(N) loop boundaries and a heavy `result.toString().length()` layout-blocking character parsing trap. |
 | **5** | `FibonacciBigIntegerLargeScaleNameMoreOptimized.java` | **Algorithmic Leap**: Replaced the linear loop with an \(O(\log n)\) **Fast Doubling matrix identity matrix**. Extracted exact digit lengths instantly via high-precision base-10 logarithmic bounds. | ❌ **Single-Thread Bottleneck**: Heaviest matrix multiplications capped onto a single CPU core. Execution required **468,134 ms (~7.8 mins)**. |
-| **6** | `ParallelFibonacciFastDoubling.java` | **Hardware Saturation**: Configured a **ForkJoinPool** with a custom **Parallel Karatsuba Split-Engine** to segment and route mathematical branches simultaneously. | ⚠️ Finished in **373,035 ms (~6.2 mins)**. Performance restricted by object generation churn from 30 deep recursive stack frame allocations. |
-| **7** | `IterativeParallelFibonacci.java` | **Memory-Flattening Bit Loop**: Eliminated recursion completely using a left-to-right iterative loop driven by `Long.highestOneBit`. Minimizes heap structure references to preserve raw internal architecture bandwidth. | 🏆 **Peak Performance: 338,084 ms (~5.6 mins)** on Apple M2 Unified Architecture. |
+| **6** | `FibonacciParallelFastDoubling.java` | **Hardware Saturation**: Configured a **ForkJoinPool** with a custom **Parallel Karatsuba Split-Engine** to segment and route mathematical branches simultaneously. | ⚠️ Finished in **373,035 ms (~6.2 mins)**. Performance restricted by object generation churn from 30 deep recursive stack frame allocations. |
+| **7** | `FibonacciIterativeParallel.java` | **Memory-Flattening Bit Loop**: Eliminated recursion completely using a left-to-right iterative loop driven by `Long.highestOneBit`. Minimizes heap structure references to preserve raw internal architecture bandwidth. | 🏆 **Peak Performance: 338,084 ms (~5.6 mins)** on Apple M2 Unified Architecture. |
 
 ---
 
@@ -58,7 +58,7 @@ The Latin short-scale prefix generator handles indices mathematically through re
 ---
 
 ## 🧪 Regression Testing Suite
-A dependency-free test runner (`FibonacciTestSuite.java`) is packaged alongside the calculation engine to automatically run regression tests across scale boundaries, prefix constructions, and logarithmic calculations:
+A dependency-free test runner (`FibonacciIterativeParallelTestSuite.java`) is packaged alongside the calculation engine to automatically run regression tests across scale boundaries, prefix constructions, and logarithmic calculations:
 ```text
 🧪 Running Fibonacci Engine Test Suite...
 

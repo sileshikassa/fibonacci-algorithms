@@ -3,7 +3,9 @@ package algorithms;
 import java.math.BigInteger;
 import java.util.Scanner;
 
-/*
+/**
+    Tested on MacBook Air M2 24GB RAM
+
     Fibonacci(383885) produces a very large fibonacci number that goes many pages:
     Enter a number to find the Fibonacci sequence element: 383885
     Fibonacci number 383885 is:

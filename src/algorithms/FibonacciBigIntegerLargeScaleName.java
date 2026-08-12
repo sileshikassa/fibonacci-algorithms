@@ -3,6 +3,24 @@ package algorithms;
 import java.math.BigInteger;
 import java.util.Scanner;
 
+/**
+    Tested on MacBook Air M2 24GB RAM
+
+    Fibonacci(383885) produces a very large Fibonacci number that can't be printed on
+    the console:
+    Enter a number to find the Fibonacci sequence element: 383885
+    Calculating... please wait...
+    Real Time taken: 1158 ms
+
+    [Number is too large to print safely to console without lagging]
+    Starts with: 458991582114173...
+
+    --- Scale Analysis ---
+    Total Digits: 80227
+    Estimated Scale Name: Multi-Millinillion Group (Scale index: 26741-illion)
+    Total Time taken: 71 ms
+ */
+
 public class FibonacciBigIntegerLargeScaleName {
 
     // Latin prefix arrays for the Short Scale naming system

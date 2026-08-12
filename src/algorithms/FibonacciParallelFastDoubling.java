@@ -18,8 +18,17 @@ import java.util.concurrent.RecursiveTask;
      Post Computation Time: 6 ms
 
 
+     Enter a number to find the Fibonacci sequence element (Parallel Engine): 2000000000
+     Calculating mathematical value (Parallel Warp Speed)... please wait...
+     Pure Computation Time: 3111300 ms => 51.86 Minutes
+
+     --- Scale Analysis ---
+     Total Digits: 417975281
+     Estimated Scale Name: Multi-Millinillion Group (Scale index: 139325092-illion)
+     Post Computation Time: 8 ms
+
  */
-public class ParallelFibonacciFastDoubling {
+public class FibonacciParallelFastDoubling {
 
     private static final String[] UNITS = {"", "Un", "Duo", "Tres", "Quattuor",
             "Quinque", "Se", "Septen", "Octo", "Novem"};

@@ -5,7 +5,7 @@ import java.util.Scanner;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
-public class IterativeParallelFibonacci {
+public class FibonacciIterativeParallel {
 
     private static final String[] UNITS = {"", "Un", "Duo", "Tres", "Quattuor", "Quinque",
                                            "Se", "Septen", "Octo", "Novem"};

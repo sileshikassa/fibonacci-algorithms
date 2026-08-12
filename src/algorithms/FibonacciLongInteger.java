@@ -2,7 +2,9 @@ package algorithms;
 
 import java.util.Scanner;
 
-/*
+/**
+    Tested on MacBook Air M2 24GB RAM
+
    This class will safely generate the fibonacci(95):
      Enter a number to find the Fibonacci sequence element: 95
      Fibonacci of 95 is:

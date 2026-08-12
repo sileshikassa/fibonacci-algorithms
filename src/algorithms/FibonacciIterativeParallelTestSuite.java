@@ -1,6 +1,6 @@
 package algorithms;
 
-public class FibonacciTestSuite {
+public class FibonacciIterativeParallelTestSuite {
 
     public static void main(String[] args) {
         System.out.println("🧪 Running Fibonacci Engine Test Suite...\n");
@@ -42,25 +42,25 @@ public class FibonacciTestSuite {
     private static void testSmallIllionNames() {
         System.out.print("Testing Small '-illion' Boundaries... ");
         // 4 digits = Thousands tier
-        assertEquals("Thousands", IterativeParallelFibonacci.getIllionName(4), "4 digits boundary");
+        assertEquals("Thousands", FibonacciIterativeParallel.getIllionName(4), "4 digits boundary");
         // 7 digits = Millions tier (1,000,000)
-        assertEquals("Million", IterativeParallelFibonacci.getIllionName(7), "7 digits boundary");
+        assertEquals("Million", FibonacciIterativeParallel.getIllionName(7), "7 digits boundary");
         // 10 digits = Billions tier (1,000,000,000)
-        assertEquals("Billion", IterativeParallelFibonacci.getIllionName(10), "10 digits boundary");
+        assertEquals("Billion", FibonacciIterativeParallel.getIllionName(10), "10 digits boundary");
         System.out.println("Passed.");
     }
 
     private static void testLargeIllionNames() {
         System.out.print("Testing Large Latin Prefixes... ");
         // 3004 digits -> targetIndex = 1000 -> Centillion
-        assertEquals("Centillion", IterativeParallelFibonacci.getIllionName(304), "Centillion check");
+        assertEquals("Centillion", FibonacciIterativeParallel.getIllionName(304), "Centillion check");
         System.out.println("Passed.");
     }
 
     private static void testExtremeFallbackScale() {
         System.out.print("Testing Extreme Fallback Safe-guards... ");
         // 208,987,640 digits -> verified index milestone
-        String result = IterativeParallelFibonacci.getIllionName(208987640L);
+        String result = FibonacciIterativeParallel.getIllionName(208987640L);
         assertTrue(result.contains("Multi-Millinillion Group"), "Fallback containment check");
         assertTrue(result.contains("69662545-illion"), "Scale index validation");
         System.out.println("Passed.");
