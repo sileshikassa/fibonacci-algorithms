@@ -6,8 +6,8 @@ A high-performance, multi-threaded Java implementation engineered to calculate a
 
 | Stage | Class Name / Approach | Core Engineering Optimization | Upper Bound / Failure Mode |
 | :--- | :--- | :--- | :--- |
-| **1** | `FibonacciInteger.java` | Baseline 32-bit primitive loop tracking. | ❌ **Overflows at F₄₈** (exceeds 2³¹-1, yielding corrupt negative sequences). |
-| **2** | `FibonacciLongInteger.java` | Upgrades workspace data width to 64-bit primitive types. | ❌ **Overflows at F₉₃** (exceeds 2⁶³-1). |
+| **1** | `FibonacciInteger.java` | Baseline 32-bit primitive loop tracking. | ❌ **Overflows at \(F_{48}\)** (exceeds \(2^{31}-1\), yielding corrupt negative sequences). |
+| **2** | `FibonacciLongInteger.java` | Upgrades workspace data width to 64-bit primitive types. | ❌ **Overflows at \(F_{93}\)** (exceeds \(2^{63}-1\)). |
 | **3** | `FibonacciBigInteger.java` | Transition to arbitrary-precision `BigInteger` object references. | ❌ **Heap OutOfMemoryError (OOM)** at \(F_{1,000,000}\) due to massive O(N) sequential array allocations. |
 | **4** | `FibonacciBigIntegerLargeScaleName.java` | **Space Optimization**: Removed the tracking array. Used an O(1) scalar pipeline (`a`, `b`, `c`) to capture the single target number. Added custom Latin Short Scale Naming Engine. | ❌ **Time Complexity Bottleneck**: Execution stalled for over 4 hours at N=10⁹ due to O(N) loop boundaries and a heavy `result.toString().length()` layout-blocking character parsing trap. |
 | **5** | `FibonacciBigIntegerLargeScaleNameMoreOptimized.java` | **Algorithmic Leap**: Replaced the linear loop with an \(O(\log n)\) **Fast Doubling matrix identity matrix**. Extracted exact digit lengths instantly via high-precision base-10 logarithmic bounds. | ❌ **Single-Thread Bottleneck**: Heaviest matrix multiplications capped onto a single CPU core. Execution required **468,134 ms (~7.8 mins)**. |
@@ -38,7 +38,7 @@ task2.fork(); // Asynchronously process low-order bits on available threads
 
 ### 3. Re-Engineered Short-Scale Naming Bounds
 The Latin short-scale prefix generator handles indices mathematically through remainder parsing blocks. Crucial boundary corrections and array layouts were implemented to ensure strict scale separation:
-*   **Hundreds Scale Safety**: Numbers with ≤ 3 digits are locked to `"Hundreds"`, isolating them from higher magnitude groups.
+*   **Hundreds Scale Safety**: Numbers with \(\le 3\) digits are locked to `"Hundreds"`, isolating them from higher magnitude groups.
 *   **Thousands Scale Guard**: Targets reaching `targetIndex <= 0` map strictly to `"Thousands"`.
 *   **Array Realignment**: Pre-indexed `"Thousands"` into index `0` of the `smallIllions` tracking matrix, guaranteeing a flawless, synchronized index handoff straight to `"Million"` (Index 1) and `"Billion"` (Index 2).
 *   **0-Based Padding Stability**: Maintained strict empty placeholder elements (`""`) at index `0` of the `UNITS`, `TENS`, and `HUNDREDS` matrices. This maps raw remainder modulo results directly to their Latin counterparts, avoiding scale-shifting alignment bugs.
@@ -60,8 +60,6 @@ The Latin short-scale prefix generator handles indices mathematically through re
 ## 🧪 Regression Testing Suite
 A dependency-free test runner (`FibonacciIterativeParallelTestSuite.java`) is packaged alongside the calculation engine to automatically run regression tests across scale boundaries, prefix constructions, and logarithmic calculations:
 ```text
-🧪 Running Fibonacci Engine Test Suite...
-
 Testing Logarithmic Digit Calculator... Passed.
 Testing Small '-illion' Boundaries... Passed.
 Testing Large Latin Prefixes... Passed.
