@@ -5,11 +5,29 @@ import java.util.Scanner;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
+/**
+ *
+
+     Enter a number to find the Fibonacci sequence element (Parallel Engine): 1500000000
+     Calculating mathematical value (Parallel Warp Speed)... please wait...
+     Pure Computation Time: 900721 ms => 15.01 minutes
+
+     --- Scale Analysis ---
+     Total Digits: 313481461
+     Estimated Scale Name: Multi-Millinillion Group (Scale index: 104493819-illion)
+     Post Computation Time: 6 ms
+
+
+ */
 public class ParallelFibonacciFastDoubling {
 
-    private static final String[] UNITS = {"", "Un", "Duo", "Tres", "Quattuor", "Quinque", "Se", "Septen", "Octo", "Novem"};
-    private static final String[] TENS = {"", "Deci", "Viginti", "Triginta", "Quadraginta", "Quinquaginta", "Sexaginta", "Septuaginta", "Octoginta", "Nonaginta"};
-    private static final String[] HUNDREDS = {"", "Centi", "Ducenti", "Trecenti", "Quadringenti", "Quingenti", "Sescenti", "Septingenti", "Octingenti", "Nongenti"};
+    private static final String[] UNITS = {"", "Un", "Duo", "Tres", "Quattuor",
+            "Quinque", "Se", "Septen", "Octo", "Novem"};
+    private static final String[] TENS = {"", "Deci", "Viginti", "Triginta","Quadraginta",
+             "Quinquaginta", "Sexaginta", "Septuaginta", "Octoginta", "Nonaginta"};
+    private static final String[] HUNDREDS = {"", "Centi", "Ducenti", "Trecenti",
+            "Quadringenti", "Quingenti", "Sescenti", "Septingenti", "Octingenti",
+            "Nongenti"};
 
     // Threshold below which standard single-threaded multiplication is faster (in bits)
     private static final int PARALLEL_THRESHOLD = 20000;
