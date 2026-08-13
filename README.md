@@ -12,7 +12,7 @@ A high-performance, multi-threaded Java implementation engineered to calculate a
 | **4** | `FibonacciBigIntegerLargeScaleName.java` | **Space Optimization**: Removed the tracking array. Used an O(1) scalar pipeline (`a`, `b`, `c`) to capture the single target number. Added custom Latin Short Scale Naming Engine. | ❌ **Time Complexity Bottleneck**: Execution stalled for over 4 hours at N=$10^9$ due to O(N) loop boundaries and a heavy `result.toString().length()` layout-blocking character parsing trap. |
 | **5** | `FibonacciBigIntegerLargeScaleNameMoreOptimized.java` | **Algorithmic Leap**: Replaced the linear loop with an $O(\log n)$ **Fast Doubling matrix identity matrix**. Extracted exact digit lengths instantly via high-precision base-10 logarithmic bounds. | ❌ **Single-Thread Bottleneck**: Heaviest matrix multiplications capped onto a single CPU core. Execution required **468,134 ms (~7.8 mins)**. |
 | **6** | `FibonacciParallelFastDoubling.java` | **Hardware Saturation**: Configured a **ForkJoinPool** with a custom **Parallel Karatsuba Split-Engine** to segment and route mathematical branches simultaneously. | ⚠️ Finished in **373,035 ms (~6.2 mins)**. Performance restricted by object generation churn from 30 deep recursive stack frame allocations. |
-| **7** | `FibonacciIterativeParallel.java` | **Memory-Flattening Bit Loop**: Eliminated recursion completely using a left-to-right iterative loop driven by `Long.highestOneBit`. Minimizes heap structure references to preserve raw internal architecture bandwidth. | 🏆 **Peak Performance: 338,084 ms (~5.6 mins)** on Apple M2 Unified Architecture. |
+| **7** | `FibonacciIterativeParallel.java` | **Memory-Flattening Bit Loop**: Eliminated recursion completely using a left-to-right iterative loop driven by `Long.highestOneBit`. Minimizes heap structure references to preserve raw internal architecture bandwidth. | 🏆 **Peak Performance: 239,551 ms (~3.99 mins)** on Apple M2 Unified Architecture. |
 
 ---
 
@@ -28,7 +28,7 @@ $$\text{Digits} = \lfloor \log_{10}(F_n) \rfloor + 1 \approx \lfloor n \cdot \lo
 Using precise tracking parameters ($\log_{10}(\phi) \approx 0.2089876402499787$ and $\log_{10}(\sqrt{5}) \approx 0.3494850021680094$), the engine calculates the scale size of $F_{1,000,000,000}$ (**208,987,640 digits**) in exactly **8 milliseconds**.
 
 ### 2. Work-Stealing Parallel Karatsuba Multiplication Pipeline
-Java's core `BigInteger.multiply()` operations execute sequentially on a single thread. For astronomical values, the engine intercepts computation steps exceeding a 25,000-bit constraint and forks them via a thread-stealing `ForkJoinPool`:
+Java's core `BigInteger.multiply()` operations execute sequentially on a single thread. For astronomical values, the engine intercepts computation steps exceeding a baseline bit constraint and forks them via a thread-stealing `ForkJoinPool`:
 ```java
 ParallelKaratsuba task1 = new ParallelKaratsuba(x1, y1);
 ParallelKaratsuba task2 = new ParallelKaratsuba(x0, y0);
@@ -45,20 +45,25 @@ The Latin short-scale prefix generator handles indices mathematically through re
 
 ### 4. Empirical Parallel Threshold Calibration
 To maximize multi-core hardware saturation while minimizing thread orchestration overhead on the Apple M2 unified memory architecture, the multiplication pipeline utilizes an empirically calibrated bit-length execution threshold:
-* **The Multithreading Paradox**: Setting the parallel threshold too low (e.g., 25,000 bits) forces the engine to split numbers into millions of microscopic tasks at extreme scales. When computing $F_{1,000,000,000}$ (yielding a 694,241,913-bit sequence), excessive task forks flood the work-stealing queues, wasting CPU clock cycles on queue orchestration, context switching, and heap allocation management.
-* **The 500,000-Bit Sweet Spot**: Performance matrix telemetry under OpenJDK 23 established **500,000 bits** as the optimal boundary for billion-scale calculations. This threshold restricts thread-forking exclusively to massive high-level matrix multiplications, ensuring medium-scale mathematical operations remain on a high-speed sequential path.
-* **Throughput Optimization**: This hardware calibration unlocked a peak computation pass of **244,096 ms (~4.07 minutes)** for $F_{1,000,000,000}$. By mitigating thread queue bloat and reducing thermal throttling under sustained multi-core load, the tuned threshold achieved an immediate 25%+ latency reduction over uncalibrated parallel execution configurations.
+*   **The Multithreading Paradox**: Setting the parallel threshold too low (e.g., 25,000 bits) forces the engine to split numbers into millions of microscopic tasks at extreme scales. When computing $F_{1,000,000,000}$ (yielding a 694,241,913-bit sequence), excessive task forks flood the work-stealing queues, wasting CPU clock cycles on queue orchestration, context switching, and heap allocation management.
+*   **The 500,000-Bit Sweet Spot**: Performance matrix telemetry under OpenJDK 23 established **500,000 bits** as the optimal boundary for billion-scale calculations. This threshold restricts thread-forking exclusively to massive high-level matrix multiplications, ensuring medium-scale mathematical operations remain on a high-speed sequential path.
+
+### 5. Task Instantiation Churn Reduction (33.3% Heap Optimization)
+Standard parallel Karatsuba structures spawn three asynchronous task wrappers (`task1`, `task2`, and `task3`) at every tree split, flooding the garbage collector with short-lived objects. The optimized engine completely eliminates the third task instance object header by routing the cross-product calculation (`(x1+x0)*(y1+y0)`) directly back into the `parallelMultiply` entry router on the parent execution core. This architectural bypass slashes thread pool instantiation allocation by exactly **33.3%** across the tree layout, conserving precious L1/L2 data cache space.
+
+### 6. Non-Blocking Incremental Telemetry Progress
+Standard console print functions (`System.out.print`) serve as block synchronization boundaries that halt CPU execution pipelines while drawing characters. To provide real-time calculation visibility without compromising throughput speed, the execution loop dynamically calculates total loop depths from bit masks and drops telemetry markers strictly at matching **10% completion intervals**. This preserves computational flow while maintaining clear terminal visibility.
 
 ---
 
 ## 📊 Benchmarks & Telemetry ($F_{1,000,000,000}$)
 
 *   **Hardware Baseline**: Apple M2 Silicon (8-Core CPU, 24GB Unified Memory Layout)
-*   **Runtime Configuration**: JVM Max Heap specified at `-Xmx16g`
+*   **Runtime Configuration**: JVM Max Heap specified at `-Xmx16g` / OpenJDK 23.0.1
 *   **Core Engagement**: `774.1% CPU Utilization` (Confirming thorough multi-core parallel saturation)
-*   **Dynamic Heap Footprint**: `3.31 GB` (Highly compact allocation via loop-flattened variables)
-*   **Pure Computational Execution Time**: **338,084 ms (~5.6 minutes)**
-*   **Metrics & Name Generation**: **8 ms**
+*   **Dynamic Heap Footprint**: `2.51 GB` (Extremely stable allocation via memory-flattened scalars)
+*   **Pure Computational Execution Time**: **239,551 ms (~3.99 minutes)** 🚀 *Sub-4-minute milestone cleared*
+*   **Metrics & Name Generation**: **6 ms**
 *   **Calculated Scale Output**: `Multi-Millinillion Group (Scale index: 69662545-illion)`
 
 ---
@@ -73,5 +78,3 @@ Testing Extreme Fallback Safe-guards... Passed.
 
 🎉 ALL TESTS PASSED SUCCESSFULLY! [7/7]
 ```
-
-
