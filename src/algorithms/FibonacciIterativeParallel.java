@@ -16,7 +16,8 @@ public class FibonacciIterativeParallel {
                                               "Quadringenti", "Quingenti", "Sescenti",
                                               "Septingenti", "Octingenti", "Nongenti"};
 
-    private static final int PARALLEL_THRESHOLD = 25000;
+    // OPTIMAL HARDWARE THRESHOLD FOR EXTREME SCALING (VALIDATED ON MAC M2
+    private static final int PARALLEL_THRESHOLD = 500000;
     private static final ForkJoinPool POOL = ForkJoinPool.commonPool();
 
     public static void main(String[] args) {
