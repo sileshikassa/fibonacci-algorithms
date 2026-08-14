@@ -19,7 +19,8 @@ A high-performance, multi-threaded Java implementation engineered to calculate a
 ## 🔬 Core Engineering Innovations
 
 ### 1. Instant Logarithmic Digit Estimation
-To prevent fatal formatting delays caused by converting an arbitrary-precision binary sequence to an ASCII character array via `toString().length()`, the engine resolves the digit count strictly via a logarithmic derivative of Binet's Formula:
+To prevent fatal formatting delays caused by converting an arbitrary-precision
+binary sequence to an ASCII character array via `toString().length()`, the engine resolves the digit count strictly via a logarithmic derivative of Binet's Formula. Binet’s Formula is a closed-form expression that calculates the nth Fibonacci number directly, without computing all the preceding terms. It uses the golden ratio and produces exact integer results despite involving irrational numbers:
 
 $$F_n \approx \frac{\phi^n}{\sqrt{5}}$$
 
