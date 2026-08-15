@@ -69,6 +69,39 @@ Standard console print functions (`System.out.print`) serve as block synchroniza
 
 ---
 
+### 1. Multi-JDK Runtime Matrix
+The execution profiles below map the raw impact of upgrading the runtime environment from Java 23 to Java 26 alongside successive JVM tuning stages:
+
+| Environment | JVM Run Configuration Flags | Pure Computation Time | Peak RAM Footprint | System Bottleneck / Behavior |
+| :--- | :--- | :--- | :--- | :--- |
+| **Java 23** | Default Settings | 239,551 ms (~3.99 mins) | **~2.51 GB - 6 GB** | Clean heap execution; zero storage swap. |
+| **Java 26** | Default Settings | 1,104,000 ms (18.4 mins) | Dynamic Allocation | Severe allocation stalling via `MinHeapSize` rules. |
+| **Java 26** | `-Xms12g -Xmx16g -XX:+UseG1GC -XX:-UseCompactObjectHeaders` | 266,670 ms (4.44 mins) | **12 GB - 16 GB** | Stable heap allocation; triggered macOS page swapping. |
+| **Java 26** | *(See Optimal Config Flags Below)* | **229,050 ms (3.81 mins)** 🏆 | **12 GB - 16 GB** | Native CPU matrix acceleration; overcame swap delay. |
+
+### 2. Isolation of the Java 26 Memory Regression
+The dramatic 18.4-minute slowdown encountered on default Java 26 installations stems from structural changes to underlying heap allocation mechanics:
+* **The Heap Allocation Trap (`MinHeapSize`):** Java 26 optimizes standard startup overhead by matching the initial heap footprint to the bare minimum threshold (`MinHeapSize`). For an algorithm that rapidly forks and mutates massive `BigInteger` arrays, this forces the JVM to continuously pause execution threads to request memory segment boundary shifts from macOS.
+* **Object Lifespan Inflation & Page Swapping:** Java 23 immediately reclaims short-lived mathematical reference structures during parallel Karatsuba splits. Java 26 holds onto these reference arrays slightly longer. Forcing a `-Xms12g -Xmx16g` configuration arena to stabilize the heap starves the Mac's shared 24GB Unified Memory buffer, causing macOS to invoke page swapping to the internal SSD. 
+
+### 3. Conquering Storage Latency via ARM64 Math Intrinsics
+The execution time was dropped to a record-breaking **3.81 minutes** by bypassing standard software bytecode loops. By unlocking diagnostic parameters, the JVM forces `java.math.BigInteger` operations to bind directly onto the M2 silicon's native hardware math engines:
+* `-XX:+UseMultiplyToLenIntrinsic`: Routes massive array multiplications straight into the ARM64 CPU's assembly-level multiplication registers.
+* `-XX:+UseSquareToLenIntrinsic`: Bypasses software routines during the repetitive squaring chains core to Fast Doubling scaling.
+
+The raw computational throughput of native hardware math completely counteracted and outpaced the latency introduced by macOS SSD page swapping.
+
+---
+
+## 🛠️ Optimal JVM Configuration for Extreme Math Workspace
+
+To replicate the accelerated sub-4-minute milestone on Apple Silicon hardware environments under Java 26, execute your application binary using this exact operational profile:
+
+```bash
+java -Xms12g -Xmx16g -XX:+UseG1GC -XX:-UseCompactObjectHeaders -XX:+UnlockDiagnosticVMOptions -XX:+UseSquareToLenIntrinsic -XX:+UseMultiplyToLenIntrinsic -jar FibonacciEngine.jar
+
+---
+
 ## 🧪 Regression Testing Suite
 A dependency-free test runner (`FibonacciIterativeParallelTestSuite.java`) is packaged alongside the calculation engine to automatically run regression tests across scale boundaries, prefix constructions, and logarithmic calculations:
 ```text
