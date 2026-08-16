@@ -8,24 +8,34 @@ import java.util.concurrent.RecursiveTask;
 /**
  *
 
-     Enter a number to find the Fibonacci sequence element (Parallel Engine): 1500000000
-     Calculating mathematical value (Parallel Warp Speed)... please wait...
-     Pure Computation Time: 900721 ms => 15.01 minutes
+     Enter a number to find the Fibonacci sequence element (Parallel Engine): 1000000000
+     Calculating mathematical value (Iteration 7 Warp Speed)... please wait...
+     ...
+     ...
+     [PROGRESS] Bitmask Processing Tree: 70% completed...
+     [PROGRESS] Bitmask Processing Tree: 80% completed...
+     [PROGRESS] Bitmask Processing Tree: 90% completed...
+     [PROGRESS] Bitmask Processing Tree: 100% completed...
+     Pure Computation Time: 220473 ms -> 3.67 minutes
 
      --- Scale Analysis ---
-     Total Digits: 313481461
-     Estimated Scale Name: Multi-Millinillion Group (Scale index: 104493819-illion)
-     Post Computation Time: 6 ms
+     Total Digits: 208987640
+     Estimated Scale Name: Multi-Millinillion Group (Scale index: 69662545-illion)
+     Post Computation Time: 2 ms
 
 
-     Enter a number to find the Fibonacci sequence element (Parallel Engine): 2000000000
-     Calculating mathematical value (Parallel Warp Speed)... please wait...
-     Pure Computation Time: 3111300 ms => 51.86 Minutes
+     Enter a number to find the Fibonacci number (Iteration 7 - Loop Parallel): 2000000000
+     Calculating mathematical value (Iteration 7 Warp Speed)... please wait...
+     [PROGRESS] Bitmask Processing Tree: 70% completed...
+     [PROGRESS] Bitmask Processing Tree: 80% completed...
+     [PROGRESS] Bitmask Processing Tree: 90% completed...
+     [PROGRESS] Bitmask Processing Tree: 100% completed...
+     Pure Computation Time: 1785221 ms -> 29.75 minutes
 
-     --- Scale Analysis ---
-     Total Digits: 417975281
-     Estimated Scale Name: Multi-Millinillion Group (Scale index: 139325092-illion)
-     Post Computation Time: 8 ms
+    --- Scale Analysis ---
+    Total Digits: 417975281
+    Estimated Scale Name: Multi-Millinillion Group (Scale index: 139325092-illion)
+    Post Computation Time: 1 ms
 
  */
 public class FibonacciParallelFastDoubling {

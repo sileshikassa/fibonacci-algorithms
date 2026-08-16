@@ -39,6 +39,7 @@ task2.fork(); // Asynchronously process low-order bits on available threads
 
 ### 3. Re-Engineered Short-Scale Naming Bounds
 The Latin short-scale prefix generator handles indices mathematically through remainder parsing blocks. Crucial boundary corrections and array layouts were implemented to ensure strict scale separation:
+
 *   **Hundreds Scale Safety**: Numbers with $\le 3$ digits are locked to `"Hundreds"`, isolating them from higher magnitude groups.
 *   **Thousands Scale Guard**: Targets reaching `targetIndex <= 0` map strictly to `"Thousands"`.
 *   **Array Realignment**: Pre-indexed `"Thousands"` into index `0` of the `smallIllions` tracking matrix, guaranteeing a flawless, synchronized index handoff straight to `"Million"` (Index 1) and `"Billion"` (Index 2).
@@ -46,6 +47,7 @@ The Latin short-scale prefix generator handles indices mathematically through re
 
 ### 4. Empirical Parallel Threshold Calibration
 To maximize multi-core hardware saturation while minimizing thread orchestration overhead on the Apple M2 unified memory architecture, the multiplication pipeline utilizes an empirically calibrated bit-length execution threshold:
+
 *   **The Multithreading Paradox**: Setting the parallel threshold too low (e.g., 25,000 bits) forces the engine to split numbers into millions of microscopic tasks at extreme scales. When computing $F_{1,000,000,000}$ (yielding a 694,241,913-bit sequence), excessive task forks flood the work-stealing queues, wasting CPU clock cycles on queue orchestration, context switching, and heap allocation management.
 *   **The 500,000-Bit Sweet Spot**: Performance matrix telemetry under OpenJDK 23 established **500,000 bits** as the optimal boundary for billion-scale calculations. This threshold restricts thread-forking exclusively to massive high-level matrix multiplications, ensuring medium-scale mathematical operations remain on a high-speed sequential path.
 
@@ -81,11 +83,13 @@ The execution profiles below map the raw impact of upgrading the runtime environ
 
 ### 2. Isolation of the Java 26 Memory Regression
 The dramatic 18.4-minute slowdown encountered on default Java 26 installations stems from structural changes to underlying heap allocation mechanics:
+
 * **The Heap Allocation Trap (`MinHeapSize`):** Java 26 optimizes standard startup overhead by matching the initial heap footprint to the bare minimum threshold (`MinHeapSize`). For an algorithm that rapidly forks and mutates massive `BigInteger` arrays, this forces the JVM to continuously pause execution threads to request memory segment boundary shifts from macOS.
 * **Object Lifespan Inflation & Page Swapping:** Java 23 immediately reclaims short-lived mathematical reference structures during parallel Karatsuba splits. Java 26 holds onto these reference arrays slightly longer. Forcing a `-Xms12g -Xmx16g` configuration arena to stabilize the heap starves the Mac's shared 24GB Unified Memory buffer, causing macOS to invoke page swapping to the internal SSD. 
 
 ### 3. Conquering Storage Latency via ARM64 Math Intrinsics
 The execution time was dropped to a record-breaking **3.81 minutes** by bypassing standard software bytecode loops. By unlocking diagnostic parameters, the JVM forces `java.math.BigInteger` operations to bind directly onto the M2 silicon's native hardware math engines:
+
 * `-XX:+UseMultiplyToLenIntrinsic`: Routes massive array multiplications straight into the ARM64 CPU's assembly-level multiplication registers.
 * `-XX:+UseSquareToLenIntrinsic`: Bypasses software routines during the repetitive squaring chains core to Fast Doubling scaling.
 
@@ -98,7 +102,7 @@ The raw computational throughput of native hardware math completely counteracted
 To replicate the accelerated sub-4-minute milestone on Apple Silicon hardware environments under Java 26, execute your application binary using this exact operational profile:
 
 ```bash
-java -Xms12g -Xmx16g -XX:+UseG1GC -XX:-UseCompactObjectHeaders -XX:+UnlockDiagnosticVMOptions -XX:+UseSquareToLenIntrinsic -XX:+UseMultiplyToLenIntrinsic -jar FibonacciEngine.jar
+java -Xms12g -Xmx16g -XX:+UseG1GC -XX:-UseCompactObjectHeaders -XX:+UnlockDiagnosticVMOptions -XX:+UseSquareToLenIntrinsic -XX:+UseMultiplyToLenIntrinsic
 
 ---
 
