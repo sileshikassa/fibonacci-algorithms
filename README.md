@@ -101,8 +101,9 @@ The raw computational throughput of native hardware math completely counteracted
 
 To replicate the accelerated sub-4-minute milestone on Apple Silicon hardware environments under Java 26, execute your application binary using this exact operational profile:
 
-```bash
-java -Xms12g -Xmx16g -XX:+UseG1GC -XX:-UseCompactObjectHeaders -XX:+UnlockDiagnosticVMOptions -XX:+UseSquareToLenIntrinsic -XX:+UseMultiplyToLenIntrinsic
+```jvm-option
+-Xms12g -Xmx16g -XX:+UseG1GC -XX:-UseCompactObjectHeaders -XX:+UnlockDiagnosticVMOptions -XX:+UseSquareToLenIntrinsic -XX:+UseMultiplyToLenIntrinsic
+```
 
 ---
 
