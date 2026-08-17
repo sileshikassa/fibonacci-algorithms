@@ -39,6 +39,12 @@ task2.fork(); // Asynchronously process low-order bits on available threads
 
 ### 3. Re-Engineered Short-Scale Naming Bounds
 The Latin short-scale prefix generator handles indices mathematically through remainder parsing blocks. Crucial boundary corrections and array layouts were implemented to ensure strict scale separation:
+```java
+if (digits <= 3) return "Hundreds";
+long powerOfTen = digits - 1;
+long targetIndex = (powerOfTen - 3) / 3;
+if (targetIndex <= 0) return "Thousands";
+```
 
 *   **Hundreds Scale Safety**: Numbers with $\le 3$ digits are locked to `"Hundreds"`, isolating them from higher magnitude groups.
 *   **Thousands Scale Guard**: Targets reaching `targetIndex <= 0` map strictly to `"Thousands"`.
@@ -56,6 +62,44 @@ Standard parallel Karatsuba structures spawn three asynchronous task wrappers (`
 
 ### 6. Non-Blocking Incremental Telemetry Progress
 Standard console print functions (`System.out.print`) serve as block synchronization boundaries that halt CPU execution pipelines while drawing characters. To provide real-time calculation visibility without compromising throughput speed, the execution loop dynamically calculates total loop depths from bit masks and drops telemetry markers strictly at matching **10% completion intervals**. This preserves computational flow while maintaining clear terminal visibility.
+
+---
+
+### 🧬 Deep Dive: System Architecture & Hardware Telemetry
+
+This section breaks down how `parallelMultiply()` and `ParallelKaratsuba` interact under the hood with the Java Virtual Machine (JVM) and Apple Silicon (M2 Hardware) to achieve sub-4-minute execution times for $F_{1,000,000,000}$.
+
+#### 1. The Traffic Controller (`parallelMultiply`)
+The `parallelMultiply` method acts as an execution gatekeeper, managing the trade-off between parallel orchestration overhead and raw computational execution:
+
+*   **Sequential Fallback:** For operand sizes below **500,000 bits**, the engine bypasses the thread pool entirely. At this scale, it drops into standard `BigInteger.multiply()`, leveraging native, hardware-optimized CPU assembly loops (such as the `MultiplyToLen` compiler intrinsics).
+*   **Asynchronous Escalation:** When an operand size crosses the threshold, the calling thread packages the operation into a new `ParallelKaratsuba` task and passes it to the `ForkJoinPool.commonPool()`. The thread then blocks efficiently, waiting for the calculated product to return.
+
+#### 2. Cache-Friendly Bit Slicing
+Inside `ParallelKaratsuba`, splitting a massive number into high and low bit components (`x1`, `x0`, `y1`, `y0`) utilizes `BigInteger.shiftRight()` and `shiftLeft()`.
+
+*   **Internal Layout:** Java's `BigInteger` is backed by a flat, primitive `int[]` magnitude array. 
+*   **The 32-Bit Alignment Principle:** By enforcing that the splitting index $m$ is always a multiple of 32, the JVM avoids slow bit-by-bit shifting across internal boundaries. Instead, it converts shifts into lightning-fast, hardware-level memory block transfers (`System.arraycopy`).
+
+#### 3. Work-Stealing Dynamics on Apple Silicon
+With an 8-core Apple M2 layout, maximizing processor saturation requires efficient thread orchestration:
+
+*   **Double-Ended Queues (Deques):** Each CPU worker thread in the `ForkJoinPool` maintains its own private Deque of tasks. 
+*   **LIFO Local Processing:** Threads push and pop their own sub-tasks using a **Last-In, First-Out (LIFO)** order. This ensures that a core continues working on deeply nested data while it is still warm inside its local L1/L2 hardware caches.
+*   **FIFO Work Stealing:** When a thread runs out of local tasks, it approaches other cores' queues and steals work from the **bottom** using a **First-In, First-Out (FIFO)** approach. This strategically forces the core to steal the *largest* remaining block of work in the tree, minimizing the overall frequency of future task-stealing operations across the system bus.
+
+#### 4. The 33.3% Heap Allocation Bypass
+Standard Karatsuba implementations require computing three products: $z_0$, $z_2$, and a cross-product middle term, $z_{\text{mid}} = (x_1 + x_0)(y_1 + y_0)$. A naive approach forks three individual asynchronous tasks, which floods the garbage collector with short-lived object wrapper headers.
+
+*   **Thread Hijacking:** This engine completely eliminates the third task wrapper object. The active thread calculates the cross-product middle term directly via an immediate recursive call to `parallelMultiply()`.
+*   **Stack-Frame Optimization:** By executing the middle term on the thread's local execution stack rather than heap-allocating an asynchronous task wrapper, the engine reduces thread allocation overhead across the entire processing tree by exactly **33.3%**, conserving precious L1/L2 data cache space.
+
+#### 5. Reassembly and Native Bit-Shifting
+Once the sub-products are resolved, the final result is assembled using:
+$$\text{Result} = z_2 \cdot 2^{2m} + (z_{\text{mid}} - z_2 - z_0) \cdot 2^m + z_0$$
+
+*   **Thread Synchronization:** When a thread hits `.join()`, it blocks until that specific sub-fork completes. If the sub-fork is still executing, the waiting thread actively searches the pool to steal other available work, keeping hardware utilization pinned near maximum capacity.
+*   **Low-Level Assembly Shifts:** Multiplying the partial products by $2^{2m}$ and $2^m$ executes via bit-shifts, which the CPU handles as a highly optimized block memory transfer that fills the lowest array registers with zeros.
 
 ---
 
