@@ -3,6 +3,7 @@ package algorithms;
 public class FibonacciIterativeParallelTestSuite {
 
     public static void main(String[] args) {
+        System.out.println("Starting application version: " + Version.VERSION);
         System.out.println("🧪 Running Fibonacci Engine Test Suite...\n");
 
         try {

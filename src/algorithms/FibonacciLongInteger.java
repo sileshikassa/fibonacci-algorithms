@@ -20,6 +20,7 @@ import java.util.Scanner;
 public class FibonacciLongInteger {
 
     public static void main(String[] args) {
+        System.out.println("Starting application version: " + Version.VERSION);
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter a number to find the Fibonacci sequence element: ");
         int n = scanner.nextInt();

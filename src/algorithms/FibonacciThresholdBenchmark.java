@@ -33,6 +33,7 @@ public class FibonacciThresholdBenchmark {
     private static final ForkJoinPool POOL = ForkJoinPool.commonPool();
 
     public static void main(String[] args) {
+        System.out.println("Starting application version: " + Version.VERSION);
         // Define standard testing boundary tiers starting at 65,536 bits
         int[] thresholdsToTest = {
                 65_536,

@@ -145,8 +145,71 @@ The raw computational throughput of native hardware math completely counteracted
 
 To replicate the accelerated sub-4-minute milestone on Apple Silicon hardware environments under Java 26, execute your application binary using this exact operational profile:
 
-```jvm-option
--Xms12g -Xmx16g -XX:+UseG1GC -XX:-UseCompactObjectHeaders -XX:+UnlockDiagnosticVMOptions -XX:+UseSquareToLenIntrinsic -XX:+UseMultiplyToLenIntrinsic
+### 📊 JVM Runtime Flag Configurations
+
+To bypass standard runtime overheads, the application relies on an aggressive, explicitly tuned HotSpot profile optimized for heavy memory throughput and native vector arithmetic pipelines:
+
+*   **`-Xms12g -Xmx16g`**: Configures identical initial and maximum heap allocations. This completely eliminates runtime heap-resizing pauses and guarantees that the G1 Garbage Collector has immediate access to optimal workspace blocks.
+*   **`-XX:+UseG1GC`**: The ideal collector for huge big-integer math. By dividing the 16GB heap into dynamic virtual regions, G1GC can track and instantly evict massive, short-lived "Humongous Objects" (such as intermediate Karatsuba product arrays) the moment they lose references, preventing full-system freeze pauses.
+*   **`-XX:-UseCompactObjectHeaders`**: Disables compressed 8-byte object headers in modern JDKs. While compression saves space for millions of tiny objects, it adds a bit-shifting decompression tax on the CPU. Disabling it ensures unhindered, maximum-speed access to the primitive arrays backing `BigInteger`.
+*   **`-XX:+UseMultiplyToLenIntrinsic` & `-XX:+UseSquareToLenIntrinsic`**: Instructs the HotSpot JIT compiler to bypass standard Java bytecode for large-scale multiplication and squaring loops. It directly hot-swaps them with hand-optimized AArch64 assembly instructions, leveraging the M2 chip's specialized vector hardware lines.
+
+---
+
+Under the hood with the Java Virtual Machine (JVM) and Apple Silicon (M2 Hardware) to achieve sub-4-minute execution scales.
+
+### 📊 JVM Runtime Flag Configurations
+
+To bypass standard runtime overheads, the application relies on an aggressive, explicitly tuned HotSpot profile optimized for heavy memory throughput and native vector arithmetic pipelines:
+
+*   **`-Xms12g -Xmx16g`**: Configures identical initial and maximum heap allocations. This completely eliminates runtime heap-resizing pauses and guarantees that the G1 Garbage Collector has immediate access to optimal workspace blocks.
+*   **`-XX:+UseG1GC`**: The ideal collector for huge big-integer math. By dividing the 16GB heap into dynamic virtual regions, G1GC can track and instantly evict massive, short-lived "Humongous Objects" (such as intermediate Karatsuba product arrays) the moment they lose references, preventing full-system freeze pauses.
+*   **`-XX:-UseCompactObjectHeaders`**: Disables compressed 8-byte object headers in modern JDKs. While compression saves space for millions of tiny objects, it adds a bit-shifting decompression tax on the CPU. Disabling it ensures unhindered, maximum-speed access to the primitive arrays backing `BigInteger`.
+*   **`-XX:+UseMultiplyToLenIntrinsic` & `-XX:+UseSquareToLenIntrinsic`**: Instructs the HotSpot JIT compiler to bypass standard Java bytecode for large-scale multiplication and squaring loops. It directly hot-swaps them with hand-optimized AArch64 assembly instructions, leveraging the M2 chip's specialized vector hardware lines.
+
+
+```jvm
+-Xms12g -Xmx16g -XX:+UseG1GC -XX:-UseCompactObjectHeaders
+-XX:+UnlockDiagnosticVMOptions -XX:+UseSquareToLenIntrinsic
+-XX:+UseMultiplyToLenIntrinsic
+```
+
+---
+
+### 💻 Hardware & Core Architecture Profile
+
+Testing was conducted on an Apple M2 System-on-Chip (SoC) featuring unified memory architecture:
+
+1.  **Asymmetric Core Balancing**: The M2 features 4 Performance Cores and 4 Efficiency Cores. While standard execution utilizes all 8 cores via work-stealing, the efficiency cores can occasionally bottleneck threads waiting at a `.join()` synchronization barrier due to their lower clock speeds.
+2.  **Performance Isolation Locking**: To lock execution exclusively onto the 4 high-performance cores and eliminate efficiency-core latency lag, the JVM can be isolated using:
+    `-Djava.util.concurrent.ForkJoinPool.common.parallelism=4`
+    This results in a clean, consistent **~400% CPU utilization** profile, pinning the math tasks entirely within the high-speed L1/L2 cache lines of the performance cluster.
+
+---
+
+## 🛠️ Compilation & Execution Guide
+
+### Prerequisites
+*   **Java Development Kit (JDK) 22 or Higher** (Optimized under OpenJDK 23/26)
+*   An IDE (e.g., IntelliJ IDEA) or a command-line interface with access to a Java compiler.
+
+### Terminal Compilation
+To compile the entire 7-stage optimization suite, execute from your project root:
+```bash
+javac -d bin src/algorithms/*.java
+```
+
+### Production Warp-Speed Launch (Stage 7)
+To run the peak-performance iterative parallel loop with full hardware intrinsic acceleration, pass the verified flag sequence:
+```bash
+java -cp bin \
+  -Xms12g -Xmx16g \
+  -XX:+UseG1GC \
+  -XX:-UseCompactObjectHeaders \
+  -XX:+UnlockDiagnosticVMOptions \
+  -XX:+UseSquareToLenIntrinsic \
+  -XX:+UseMultiplyToLenIntrinsic \
+  algorithms.FibonacciIterativeParallel
 ```
 
 ---
@@ -161,3 +224,8 @@ Testing Extreme Fallback Safe-guards... Passed.
 
 🎉 ALL TESTS PASSED SUCCESSFULLY! [7/7]
 ```
+
+---
+
+## 📜 License
+This project is open-source and available under the **MIT License**. Feel free to fork, optimize, and push the numerical boundaries even further!

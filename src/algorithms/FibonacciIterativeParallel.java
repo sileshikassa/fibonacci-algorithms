@@ -15,7 +15,6 @@ import java.util.concurrent.RecursiveTask;
  *    at 10% interval thresholds to protect I/O throughput from bottlenecking.
  */
 public class FibonacciIterativeParallel {
-
     private static final String[] UNITS = {"", "Un", "Duo", "Tres", "Quattuor", "Quinque",
             "Se", "Septen", "Octo", "Novem"};
     private static final String[] TENS = {"", "Deci", "Viginti", "Triginta", "Quadraginta",
@@ -30,6 +29,7 @@ public class FibonacciIterativeParallel {
     private static final ForkJoinPool POOL = ForkJoinPool.commonPool();
 
     public static void main(String[] args) {
+        System.out.println("Starting application version: " + Version.VERSION);
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter a number to find the Fibonacci number (Iteration 7 - Loop Parallel): ");
         long n = scanner.nextLong();
